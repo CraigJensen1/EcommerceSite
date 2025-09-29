@@ -9,6 +9,6 @@
     //{
     //    Admin = 1,
     //    Employee,
-    //    User
+    //    User 
     //}
 }
