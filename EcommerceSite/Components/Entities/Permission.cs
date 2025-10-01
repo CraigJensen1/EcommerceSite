@@ -3,8 +3,16 @@ namespace EcommerceSite.Components.Classes
 {
     public class Permission
     {
+        public Guid Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
+
+        public Permission(string name, string description = "") 
+        {
+            Id = Guid.NewGuid();
+            Name = name;
+            Description = description;
+        }
     }
 
     public class PermissionCollection
