@@ -2,13 +2,6 @@
 
 namespace EcommerceSite.Components.Classes
 {
-    //public enum RolesEnum
-    //{
-    //    Admin = 1,
-    //    Employee,
-    //    User
-    //}
-
     public class Roles
     {
         public Guid Id { get; set; }
