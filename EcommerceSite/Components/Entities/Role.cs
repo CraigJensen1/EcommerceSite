@@ -1,4 +1,4 @@
-﻿namespace EcommerceSite.Components.DataLayer
+﻿namespace EcommerceSite.Components.Classes
 {
     public class Roles
     {

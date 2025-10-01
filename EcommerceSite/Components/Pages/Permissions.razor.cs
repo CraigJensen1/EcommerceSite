@@ -1,12 +1,39 @@
 ﻿using Microsoft.AspNetCore.Components;
-namespace EcommerceSite.Pages;
+using EcommerceSite.Components.Classes;
 
-public partial class Permissions : ComponentBase
+namespace EcommerceSite.Pages
 {
-    private int currentCount { get; set; } = 1;
-
-    private void IncrementCount()
+    public partial class Permissions : ComponentBase
     {
-        currentCount++;
+        private PermissionCollection permissions = new PermissionCollection();
+
+        private string newName = string.Empty;
+        private string newDescription = string.Empty;
+
+        private void AddPermission()
+        {
+            if (!string.IsNullOrWhiteSpace(newName))
+            {
+                permissions.Permissions.Add(new Permission
+                {
+                    Name = newName,
+                    Description = newDescription
+                });
+
+                permissions.Save();
+
+                newName = string.Empty;
+                newDescription = string.Empty;
+            }
+        }
+
+        private void DeletePermission(Permission perm)
+        {
+            if (permissions.Permissions.Contains(perm))
+            {
+                permissions.Permissions.Remove(perm);
+                permissions.Save();
+            }
+        }
     }
 }
