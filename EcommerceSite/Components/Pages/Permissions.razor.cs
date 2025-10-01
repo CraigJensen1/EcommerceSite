@@ -14,11 +14,7 @@ namespace EcommerceSite.Pages
         {
             if (!string.IsNullOrWhiteSpace(newName))
             {
-                permissions.Permissions.Add(new Permission
-                {
-                    Name = newName,
-                    Description = newDescription
-                });
+                permissions.Permissions.Add(new Permission(newName, newDescription));
 
                 permissions.Save();
 
