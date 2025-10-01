@@ -1,8 +1,40 @@
-﻿@namespace EcommerceSite.Pages
+﻿@page "/permissions"
+@namespace EcommerceSite.Pages
 @rendermode InteractiveServer
-@page "/permissions"
+@using EcommerceSite.Components.Classes
+@using EcommerceSite.Components.Storage
 
-<PageTitle></PageTitle>
+<PageTitle>Permissions</PageTitle>
 
-<p>Counter: @currentCount</p>
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+<h3>Permissions</h3>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var perm in permissions.Permissions)
+        {
+            <tr>
+                <td>@perm.Name</td>
+                <td>@perm.Description</td>
+                <td>
+                    <button class="btn btn-danger btn-sm" @onclick="() => DeletePermission(perm)">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h4>Add New Permission</h4>
+<div class="mb-3">
+    <input class="form-control" placeholder="Name" @bind="newName" />
+</div>
+<div class="mb-3">
+    <input class="form-control" placeholder="Description" @bind="newDescription" />
+</div>
+<button class="btn btn-success" @onclick="AddPermission">Add Permission</button>
