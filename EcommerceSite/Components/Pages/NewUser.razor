@@ -2,8 +2,20 @@
 @rendermode InteractiveServer
 @page "/newuser"
 
-<PageTitle></PageTitle>
+<PageTitle>New User</PageTitle>
 
 
-<p>Counter: @currentCount</p>
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+<h4>Start an Account</h4>
+<div class="mb-3">
+    <input class="form-control" placeholder="Email" @bind="email" />
+</div>
+<div class="mb-3">
+    <input class="form-control" placeholder="Password" @bind="password" />
+</div>
+<div class="mb-3">
+    <input class="form-control" placeholder="Reenter Password" @bind="reEnterPassword" />
+</div>
+<div class="mb-3">
+    <input class="form-control" placeholder="Username" @bind="username" />
+</div>
+<button class="btn btn-primary" @onclick="AddUser">Submit</button>
