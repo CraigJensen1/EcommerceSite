@@ -1,9 +1,423 @@
 ﻿@namespace EcommerceSite.Pages
 @rendermode InteractiveServer
+@inject NavigationManager Navigation
+@using System.ComponentModel.DataAnnotations;
 @page "/checkout"
 
 <PageTitle></PageTitle>
 
+<style>
+    #checkout-container {
+        display: flex;
+        justify-content: space-evenly;
+        padding: 1em;
+        font-family: Arial, sans-serif;
+        margin: 2em;
+    }
 
-<p>Counter: @currentCount</p>
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+    #payment-form {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #submit-payment {
+        margin-top: 1em;
+        padding: 0.75em;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 0.7em;
+        cursor: pointer;
+        font-size: 1em;
+    }
+
+    #submit-payment:hover {
+        background-color: #b8e3c1;
+        color: black;
+        border: solid black 0.1em;
+
+    }
+
+    #shipping-payment-container {
+        flex: 2;
+        margin-right: 2em;
+
+        h1,
+        h2 {
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+        }
+
+        .form-group {
+            margin-bottom: 1em;
+
+            label {
+                display: block;
+                margin-bottom: 0.5em;
+                font-weight: bold;
+            }
+
+            .info-row {
+                margin-bottom: 0.5em;
+            }
+
+            #location-info {
+                display: flex;
+                gap: 1em;
+
+                .info-row {
+                    flex: 1;
+                }
+            }
+
+            #card-details {
+                display: flex;
+                gap: 1em;
+
+                .info-row {
+                    flex: 1;
+                }
+            }
+        }
+    }
+
+    #cart-summary-container {
+        flex: 1;
+        border: 1px solid #ccc;
+        padding: 1em;
+        display: flex;
+        flex-direction: column;
+        align-items: space space-evenly;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        height: fit-content;
+
+        h2 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 1em;
+        }
+
+        #cart-items-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0 0 1em 0;
+
+            .cart-item {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 1em;
+                border-bottom: 1px solid #ddd;
+                padding-bottom: 0.5em;
+
+                .cart-item-title {
+                    margin: 0;
+                    font-size: 1.1em;
+                }
+
+                .cart-item-quantity,
+                .cart-item-price,
+                .cart-item-description {
+                    margin: 0.2em 0;
+                    color: #555;
+                }
+            }
+        }
+
+        #payment-summary {
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #ddd;
+            padding-top: 1em;
+
+            #payment-titles,
+            #payment-values {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+
+                h2,
+                p {
+                    margin: 0.2em 0;
+                }
+
+                h2 {
+                    font-size: 1.2em;
+                    font-weight: bold;
+                }
+            }
+        }
+    }
+
+    #purchase-complete {
+        text-align: center;
+        margin: 2em;
+        font-family: Arial, sans-serif;
+
+        h1 {
+            color: #28a745;
+        }
+
+        p {
+            font-size: 1.1em;
+        }
+    }
+</style>
+@if (purchaseComplete)
+{
+    <div id="purchase-complete">
+        <h1>Thank you for your purchase!</h1>
+        <p>Your order has been successfully processed.</p>
+        <p>A confirmation email has been sent to @paymentModel.Email.</p>
+    </div>
+}
+else
+{
+    <div id="checkout-container">
+        <div id="shipping-payment-container">
+            <h1>Payment Form</h1>
+            <EditForm Model="paymentModel" OnValidSubmit="HandleCheckout" FormName="paymentForm" id="payment-form">
+                <DataAnnotationsValidator />
+                <h2>Contact Information</h2>
+                <div class="form-group" id="contact-info">
+                    <label for="email">Email</label>
+                    <InputText id="email" class="form-control" @bind-Value="paymentModel.Email" />
+                    <ValidationMessage For="@(() => paymentModel.Email)" />
+                </div>
+                <h2>Shipping</h2>
+                <div class="form-group" id="shipping-info">
+                    <div class="info-row">
+                        <label for="firstName">First Name</label>
+                        <InputText id="firstName" class="form-control" @bind-Value="paymentModel.firstName" />
+                        <ValidationMessage For="@(() => paymentModel.firstName)" />
+                    </div>
+
+                    <div class="info-row">
+                        <label for="lastName">Last Name</label>
+                        <InputText id="lastName" class="form-control" @bind-Value="paymentModel.lastName" />
+                        <ValidationMessage For="@(() => paymentModel.lastName)" />
+                    </div>
+
+
+                    <div class="info-row">
+                        <label for="address">Address</label>
+                        <InputText id="address" class="form-control" @bind-Value="paymentModel.Address" />
+                        <ValidationMessage For="@(() => paymentModel.Address)" />
+                    </div>
+
+                    <div id="location-info">
+                        <div class="info-row">
+                            <label for="city">City</label>
+                            <InputText id="city" class="form-control" @bind-Value="paymentModel.City" />
+                            <ValidationMessage For="@(() => paymentModel.City)" />
+                        </div>
+
+
+                        <div class="info-row">
+                            <label for="state">State/Province</label>
+                            <InputSelect name="state" class="form-control" id="state" @bind-Value="paymentModel.State">
+
+                                <option value="">Select a state</option>
+                                <option value="AL">Alabama</option>
+                                <option value="AK">Alaska</option>
+                                <option value="AZ">Arizona</option>
+                                <option value="AR">Arkansas</option>
+                                <option value="CA">California</option>
+                                <option value="CO">Colorado</option>
+                                <option value="CT">Connecticut</option>
+                                <option value="DE">Delaware</option>
+                                <option value="DC">District Of Columbia</option>
+                                <option value="FL">Florida</option>
+                                <option value="GA">Georgia</option>
+                                <option value="HI">Hawaii</option>
+                                <option value="ID">Idaho</option>
+                                <option value="IL">Illinois</option>
+                                <option value="IN">Indiana</option>
+                                <option value="IA">Iowa</option>
+                                <option value="KS">Kansas</option>
+                                <option value="KY">Kentucky</option>
+                                <option value="LA">Louisiana</option>
+                                <option value="ME">Maine</option>
+                                <option value="MD">Maryland</option>
+                                <option value="MA">Massachusetts</option>
+                                <option value="MI">Michigan</option>
+                                <option value="MN">Minnesota</option>
+                                <option value="MS">Mississippi</option>
+                                <option value="MO">Missouri</option>
+                                <option value="MT">Montana</option>
+                                <option value="NE">Nebraska</option>
+                                <option value="NV">Nevada</option>
+                                <option value="NH">New Hampshire</option>
+                                <option value="NJ">New Jersey</option>
+                                <option value="NM">New Mexico</option>
+                                <option value="NY">New York</option>
+                                <option value="NC">North Carolina</option>
+                                <option value="ND">North Dakota</option>
+                                <option value="OH">Ohio</option>
+                                <option value="OK">Oklahoma</option>
+                                <option value="OR">Oregon</option>
+                                <option value="PA">Pennsylvania</option>
+                                <option value="RI">Rhode Island</option>
+                                <option value="SC">South Carolina</option>
+                                <option value="SD">South Dakota</option>
+                                <option value="TN">Tennessee</option>
+                                <option value="TX">Texas</option>
+                                <option value="UT">Utah</option>
+                                <option value="VT">Vermont</option>
+                                <option value="VA">Virginia</option>
+                                <option value="WA">Washington</option>
+                                <option value="WV">West Virginia</option>
+                                <option value="WI">Wisconsin</option>
+                                <option value="WY">Wyoming</option>
+                            </InputSelect>
+                            <ValidationMessage For="@(() => paymentModel.State)" />
+                        </div>
+
+
+                        <div class="info-row">
+                            <label for="zipCode">Zip/Postal Code</label>
+                            <InputText id="zipCode" class="form-control" @bind-Value="paymentModel.ZipCode" />
+                            <ValidationMessage For="@(() => paymentModel.ZipCode)" />
+                        </div>
+                    </div>
+
+
+                    <div class="info-row">
+                        <label for="phoneNumber">Phone Number</label>
+                        <InputText id="phoneNumber" class="form-control" @bind-Value="paymentModel.PhoneNumber" />
+                        <ValidationMessage For="@(() => paymentModel.PhoneNumber)" />
+                    </div>
+
+                </div>
+                <h2>Payment Method</h2>
+                <div class="form-group" id="payment-info">
+                    <div class="info-row">
+                        <label for="cardholderName">Cardholder Name</label>
+                        <InputText id="cardholderName" class="form-control" @bind-Value="paymentModel.CardholderName" />
+                        <ValidationMessage For="@(() => paymentModel.CardholderName)" />
+                    </div>
+
+                    <div class="info-row">
+                        <label for="cardNumber">Card Number</label>
+                        <InputText id="cardNumber" class="form-control" @bind-Value="paymentModel.CardNumber" />
+                        <ValidationMessage For="@(() => paymentModel.CardNumber)" />
+                    </div>
+
+                    <div id="card-details">
+                        <div class="info-row">
+                            <label for="expirationDate">Expiration Date (MM/YY)</label>
+                            <InputText id="expirationDate" class="form-control" @bind-Value="paymentModel.ExpirationDate" />
+                            <ValidationMessage For="@(() => paymentModel.ExpirationDate)" />
+                        </div>
+
+                        <div class="info-row">
+                            <label for="cvv">CVV</label>
+                            <InputText id="cvv" class="form-control" @bind-Value="paymentModel.CVV" />
+                            <ValidationMessage For="@(() => paymentModel.CVV)" />
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" id="submit-payment">Complete Purchase</button>
+
+            </EditForm>
+        </div>
+        <div id="cart-summary-container">
+            <h2>Cart Summary</h2>
+            <ul id="cart-items-list">
+                @foreach (var item in cartItems)
+                {
+                    <li class="cart-item">
+                        <div>
+                            <h3 class="cart-item-title">@item.Name</h3>
+                            <p class="cart-item-quantity">Quantity: @item.Quantity</p>
+                            <p class="cart-item-price">Price: @item.Price</p>
+                        </div>
+                        <p class="cart-item-description">@item.Description</p>
+                    </li>
+
+                }
+            </ul>
+            <button @onclick="NavitateToShoppingCart">Edit Cart</button>
+            <div id="payment-summary">
+                <div id="payment-titles">
+                    <h2>Subtotal</h2>
+                    <h2>Delivery</h2>
+                    <h2>Estimated Tax</h2>
+                    <h2>Total</h2>
+                </div>
+                <div id="payment-values">
+                    <p>$@CalculateSubtotal()</p>
+                    <p>$5.00</p>
+                    <p>$@CalculateTax()</p>
+                    <h2>$@CalculateTotal()</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    PaymentModel paymentModel = new PaymentModel();
+    private List<cartItemDisplay> cartItems = new List<cartItemDisplay>(); //change to products
+
+    protected override void OnInitialized()
+    {
+        // Load cart items from a database
+        cartItems = new List<cartItemDisplay>
+{
+new cartItemDisplay("1", 2, "Product 1", 20.00m, "Description for product 1"),
+new cartItemDisplay("2", 1, "Product 2", 15.00m, "Description for product 2"),
+new cartItemDisplay("3", 3, "Product 3", 10.00m, "Description for product 3")
+};
+    }
+    bool purchaseComplete = false;
+    private decimal CalculateSubtotal() => cartItems.Sum(item => item.Price * item.Quantity);
+    private decimal CalculateTax() => Math.Round(CalculateSubtotal() * 0.08m, 2);
+    private decimal CalculateTotal() => CalculateSubtotal() + CalculateTax() + 5.00m;
+    private void NavitateToShoppingCart() => Navigation.NavigateTo("/shoppingcart", true);
+    public class PaymentModel
+    {
+        //Contact Info
+        [Required(ErrorMessage = "Email is required")]
+        [RegularExpression(@"^[^\s@]+@[^\s@]+\.[^\s@]+$", ErrorMessage = "Invalid email format")]
+        public string Email { get; set; }
+        //Shipping Info
+        [Required(ErrorMessage = "First name is required")]
+        public string firstName { get; set; }
+        [Required(ErrorMessage = "Last name is required")]
+        public string lastName { get; set; }
+        [Required(ErrorMessage = "Address is required")]
+        public string Address { get; set; }
+        [Required(ErrorMessage = "City is required")]
+        public string City { get; set; }
+        [Required(ErrorMessage = "State is required")]
+        public string State { get; set; }
+        [Required(ErrorMessage = "Zip code is required")]
+        public string ZipCode { get; set; }
+        [Required(ErrorMessage = "Phone number is required")]
+        [RegularExpression(@"^\+?[1-9]\d{1,14}$", ErrorMessage = "Invalid phone number format")]
+        public string PhoneNumber { get; set; }
+        //Payment Info
+        [Required(ErrorMessage = "Cardholder name is required")]
+        public string CardholderName { get; set; }
+
+        [Required(ErrorMessage = "Card number is required")]
+        public string CardNumber { get; set; }
+
+        [Required(ErrorMessage = "Expiration date is required")]
+        [RegularExpression(@"^(0[1-9]|1[0-2])\/?([0-9]{2})$", ErrorMessage = "Invalid expiration date format (MM/YY)")]
+        public string ExpirationDate { get; set; }
+
+        [Required(ErrorMessage = "CVV is required")]
+        [RegularExpression(@"^\d{3,4}$", ErrorMessage = "Invalid CVV")]
+        public string CVV { get; set; }
+    }
+    public record cartItemDisplay(string productId, int Quantity, string Name, decimal Price, string Description);
+    private void HandleCheckout()
+    {
+        //Reduce the amounts of the products in database
+        //save database
+        purchaseComplete = true;
+    }
+}
