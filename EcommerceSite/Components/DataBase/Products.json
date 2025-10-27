@@ -1,0 +1,14 @@
+[
+  {
+    "Id": "9f1d2c0e-8a2b-4c3f-9d6e-1a2b3c4d5e6f",
+    "Name": "Widget",
+    "Price": 12.99,
+    "Description": "A compact, useful widget."
+  },
+  {
+    "Id": "b2e3f4a5-6c7d-48e9-8b1c-2d3e4f5a6b7c",
+    "Name": "Gizmo",
+    "Price": 29.50,
+    "Description": "A shiny gizmo that makes life easier."
+  }
+]
