@@ -1,12 +1,15 @@
 ﻿using Microsoft.AspNetCore.Components;
+using EcommerceSite.Components.Entities;
+
 namespace EcommerceSite.Pages;
 
 public partial class AllProducts : ComponentBase
 {
-    private int currentCount { get; set; } = 1;
+    private List<EcommerceSite.Components.Entities.Product> products;
 
-    private void IncrementCount()
+    protected override void OnInitialized()
     {
-        currentCount++;
+        var collection = new ProductCollection();
+        products = collection.Product.ToList();
     }
 }
