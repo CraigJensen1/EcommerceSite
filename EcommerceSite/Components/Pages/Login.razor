@@ -1,9 +1,172 @@
 ﻿@namespace EcommerceSite.Pages
 @rendermode InteractiveServer
 @page "/"
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@using Microsoft.AspNetCore.Identity;
+@using System.ComponentModel.DataAnnotations;
 
-<PageTitle>Login</PageTitle>
 
-<h1>Login page</h1>
-<p>Counter: @currentCount</p>
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+<div id="form-container">
+    <EditForm Model="model" OnValidSubmit="HandleLogin" FormName="loginForm">
+
+        <div class="email-div">
+            <label for="email" class="form-label">Email</label>
+            <InputText id="email" class="form-control" @bind-Value="model.Email" />
+        </div>
+
+        @if (isCreatingAccount)
+        {
+            <div class="username-div">
+                <label for="username" class="form-label">Username</label>
+                <InputText id="text" class="form-control" @bind-Value="model.Username" />
+            </div>
+        }
+
+        <div class="password-div">
+            <label for="password" class="form-label">Password</label>
+            <InputText type="password" id="password" class="form-control" @bind-Value="model.Password" />
+        </div>
+
+        @if (isCreatingAccount)
+        {
+            <div class="Confirmpassword-div">
+                <label for="ConfirmPassword" class="form-label">Confirm Password</label>
+                <InputText id="ConfirmPassword" class="form-control" @bind-Value="model.ConfirmPassword" />
+            </div>
+        }
+
+        <div id="Buttons-div">
+            <button id="submitLogin" @onclick="HandleLogin" disabled="@isSubmitting">
+                @(isSubmitting ? "Signing in..." : "Sign in")
+            </button>
+
+            <button id="switchToCreateAccount" type="button" @onclick="SwitchToCreateAccount">
+                @(isCreatingAccount ? "Switch To Login" : "Switch To Create Account")
+            </button>
+        </div>
+
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <div class="error-div">@ErrorMessage</div>
+        }
+    </EditForm>
+</div>
+
+
+@code
+{
+    protected bool isCreatingAccount = false;
+    protected LoginModel model = new LoginModel();
+    protected bool isSubmitting = false;
+    protected string? ErrorMessage;
+    
+
+    public class LoginModel
+    {
+        [EmailAddress]
+        public string Email { get; set; } = "";
+
+        public string Username { get; set; } = "";
+
+        public string Password { get; set; } = "";
+
+        public string ConfirmPassword { get; set; } = "";
+    }
+    protected void SwitchToCreateAccount()
+    {
+        isCreatingAccount = !isCreatingAccount;
+        model.Email = "";
+        model.Username = "";
+        model.Password = "";
+        model.ConfirmPassword = "";
+        ErrorMessage = null;
+    }
+    protected async Task HandleLogin()
+    {
+        ErrorMessage = "";
+        isSubmitting = true;
+
+        if (!isCreatingAccount && (string.IsNullOrWhiteSpace(model.Email) || string.IsNullOrWhiteSpace(model.Password)))
+        {
+            ErrorMessage = "Missing fields are required.";
+            isSubmitting = false;
+            return;
+        }
+        if (isCreatingAccount && (string.IsNullOrWhiteSpace(model.Email) || string.IsNullOrWhiteSpace(model.Password) || string.IsNullOrWhiteSpace(model.Username) || string.IsNullOrWhiteSpace(model.ConfirmPassword)))
+        {
+            ErrorMessage = "Missing fields are required.";
+            isSubmitting = false;
+            return;
+        }
+
+        var email = model.Email.Trim().ToLowerInvariant();
+
+        var users = new UserCollection();
+
+        if (isCreatingAccount)
+        {
+
+            if (users.FindByEmail(email) != null)
+            {
+                foreach (var u in users.Items)
+                {
+                    Console.WriteLine($"User: {u.Email}, {u.UserName}");
+                }
+                ErrorMessage = "An account with that email already exists.";
+                isSubmitting = false;
+                return;
+            }
+
+            if (model.Password != model.ConfirmPassword)
+            {
+                ErrorMessage = "Passwords do not match.";
+                isSubmitting = false;
+                return;
+            }
+
+            var user = new User
+            {
+                Id = Guid.NewGuid(),
+                Email = email,
+                UserName = model.Username
+            };
+
+            var hasher = new PasswordHasher<User>();
+            user.PasswordHash = hasher.HashPassword(user, model.Password);
+
+            users.Add(user);
+            users.Save();
+
+            await SessionStorage.SaveTokenAsync(JS, user.Id);
+            Navigation.NavigateTo("/AllProducts", true);
+        }
+        else
+        {
+            var user = users.FindByEmail(email);
+            if (user == null)
+            {
+                ErrorMessage = "Invalid email or password.";
+                isSubmitting = false;
+                return;
+            }
+
+            var hasher = new PasswordHasher<User>();
+            var verify = hasher.VerifyHashedPassword(user, user.PasswordHash, model.Password);
+            if (verify == PasswordVerificationResult.Failed)
+            {
+                ErrorMessage = "Invalid email or password.";
+                isSubmitting = false;
+                return;
+            }
+
+            await SessionStorage.SaveTokenAsync(JS, user.Id);
+            Navigation.NavigateTo("/AllProducts", true);
+            
+        }
+
+        isSubmitting = false;
+        
+
+    }
+}

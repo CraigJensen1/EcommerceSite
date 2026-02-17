@@ -2,8 +2,60 @@
 @rendermode InteractiveServer
 @page "/product"
 
-<PageTitle></PageTitle>
+@using EcommerceSite.Components.Entities
 
+<PageTitle>Product</PageTitle>
 
-<p>Counter: @currentCount</p>
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+@if (product != null)
+{
+	<h2>@product.Name</h2>
+	<p>@product.Description</p>
+	<p><strong>Price:</strong> @product.Price.ToString("C")</p>
+
+	<h3>Reviews</h3>
+	@if (ProductReviews.Count == 0)
+	{
+		<p>No reviews yet.</p>
+	}
+	else
+	{
+		foreach (var r in ProductReviews)
+		{
+			<div class="card mb-2">
+				<div class="card-body">
+					<h5 class="card-title">@Stars(r.Rating)</h5>
+					<p class="card-text">@r.Comment</p>
+					<small class="text-muted">@r.Created.ToLocalTime()</small>
+				</div>
+			</div>
+		}
+	}
+
+	@if (CanReview)
+	{
+		<h4>Leave a review</h4>
+		<div class="mb-2">
+			<label>Rating</label>
+			<select class="form-select" @bind="NewRating">
+				<option value="1">1</option>
+				<option value="2">2</option>
+				<option value="3">3</option>
+				<option value="4">4</option>
+				<option value="5">5</option>
+			</select>
+		</div>
+		<div class="mb-2">
+			<label>Comment</label>
+			<textarea class="form-control" @bind="NewComment"></textarea>
+		</div>
+		<button class="btn btn-primary" @onclick="SubmitReview">Submit Review</button>
+	}
+	else
+	{
+		<p class="text-muted">Only users who purchased this product can leave a review.</p>
+	}
+}
+else
+{
+	<p>Product not found.</p>
+}
